@@ -30,8 +30,49 @@
 /* clang-format on */
 
 static volatile void *uart_base;
-static u32 uart_in_freq;
-static u32 uart_baudrate;
+// static u32 uart_in_freq;
+// static u32 uart_baudrate;
+
+
+/**********************************************************************************/
+// RBR: Receiver buffer register [Read, LCR[7] == 0]
+#define UART_RBR 0x0u
+
+// THR: Transmitter Holding register [Write, LCR[7] == 0]
+#define UART_THR 0x0u
+
+// IER: Interrupt enable register [Read/Write, LCR[7] == 0]
+#define UART_IER 0x4u
+
+// IIR: Interrupt identification register [Read]
+#define UART_IIR 0x8u
+
+// FCR: FIFO control register [Write, Read only when LCR[7] == 1]
+#define UART_FCR 0x8u
+
+// LCR: Line control register [Read/Write]
+#define UART_LCR 0xCu
+
+// MCR: Modem control register [Read/Write]
+#define UART_MCR 0x10u
+
+// LSR: Line status register [Read/Write]
+#define UART_LSR 0x14u
+
+// MSR: Modem status register [Read/Write]
+#define UART_MSR 0x18u
+
+// SCR: Scratch register [Read/Write]
+#define UART_SCR 0x1Cu
+
+// DLL: Divisor latch (least significant byte) register [Read/Write, LCR[7] == 1]
+#define UART_DLL 0x0u
+
+// DLM: Divisor latch (most significant byte) register [Read/Write, LCR[7] == 1]
+#define UART_DLM 0x4u
+
+volatile uint32_t *uart_base_ptr = (uint32_t *)((uint32_t)(0x60000000 | 0x1000));
+
 
 /**
  * Find minimum divisor divides in_freq to max_target_hz;
@@ -61,17 +102,20 @@ static u32 get_reg(u32 num)
 	return readl(uart_base + (num * 0x4));
 }
 
-static void set_reg(u32 num, u32 val)
-{
-	writel(val, uart_base + (num * 0x4));
-}
+//static void set_reg(u32 num, u32 val)
+//{
+//	writel(val, uart_base + (num * 0x4));
+//}
 
 void sifive_uart_putc(char ch)
 {
-	while (get_reg(UART_REG_TXFIFO) & UART_TXFIFO_FULL)
-		;
+	// while (get_reg(UART_REG_TXFIFO) & UART_TXFIFO_FULL)
+	// 	;
 
-	set_reg(UART_REG_TXFIFO, ch);
+	
+	// set_reg(UART_REG_TXFIFO, ch);
+	while(! (*(uart_base_ptr + UART_LSR) & 0x40u));
+  	*(uart_base_ptr + UART_THR) = ch;
 }
 
 int sifive_uart_getc(void)
@@ -84,18 +128,40 @@ int sifive_uart_getc(void)
 
 int sifive_uart_init(unsigned long base, u32 in_freq, u32 baudrate)
 {
-	uart_base     = (volatile void *)base;
-	uart_in_freq  = in_freq;
-	uart_baudrate = baudrate;
+	//uart_base     = (volatile uint32_t *)((uint32_t)(0x60000000 | 0x1000));
 
-	/* Configure baudrate */
-	set_reg(UART_REG_DIV, uart_min_clk_divisor(in_freq, baudrate));
-	/* Disable interrupts */
-	set_reg(UART_REG_IE, 0);
-	/* Enable TX */
-	set_reg(UART_REG_TXCTRL, UART_TXCTRL_TXEN);
-	/* Enable Rx */
-	set_reg(UART_REG_RXCTRL, UART_RXCTRL_RXEN);
+
+	uart_base     = (volatile void *)base;
+	// uart_in_freq  = in_freq;
+	// uart_baudrate = baudrate;
+
+	// /* Configure baudrate */
+	// set_reg(UART_REG_DIV, uart_min_clk_divisor(in_freq, baudrate));
+	// /* Disable interrupts */
+	// set_reg(UART_REG_IE, 0);
+	// /* Enable TX */
+	// set_reg(UART_REG_TXCTRL, UART_TXCTRL_TXEN);
+	// /* Enable Rx */
+	// set_reg(UART_REG_RXCTRL, UART_RXCTRL_RXEN);
+
+
+	// set 0x0080 to UART.LCR to enable DLL and DLM write
+  	// configure baud rate
+	*(uart_base_ptr + UART_LCR) = 0x0080;
+
+	// System clock 30 MHz, 115200 baud rate
+	// divisor = clk_freq / (16 * Baud)
+	*(uart_base_ptr + UART_DLL) = 30*1000*1000u / (16u * 115200u) % 0x100u;
+	*(uart_base_ptr + UART_DLM) = 30*1000*1000u / (16u * 115200u) >> 8;
+
+	// 8-bit data, 1-bit odd parity
+	*(uart_base_ptr + UART_LCR) = 0x000Bu;
+
+	// Enable read IRQ
+	*(uart_base_ptr + UART_IER) = 0x0001u;
+
+	// print "uart is working ..."
+	//uart_demo();
 
 	return 0;
 }

@@ -67,6 +67,7 @@ OPENSBI_VERSION_MAJOR=`grep "define OPENSBI_VERSION_MAJOR" $(include_dir)/sbi/sb
 OPENSBI_VERSION_MINOR=`grep "define OPENSBI_VERSION_MINOR" $(include_dir)/sbi/sbi_version.h | sed 's/.*MINOR.*\([0-9][0-9]*\)/\1/'`
 OPENSBI_VERSION_GIT=$(shell if [ -d $(src_dir)/.git ]; then git describe 2> /dev/null; fi)
 
+CROSS_COMPILE=riscv64-unknown-elf-
 # Setup compilation commands
 ifdef CROSS_COMPILE
 CC		=	$(CROSS_COMPILE)gcc
