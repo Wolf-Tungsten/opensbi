@@ -37,12 +37,10 @@
 #define MSTATUS_SXL			_ULL(0x0000000C00000000)
 #define MSTATUS_SBE			_ULL(0x0000001000000000)
 #define MSTATUS_MBE			_ULL(0x0000002000000000)
-#define MSTATUS_MTL			_ULL(0x0000004000000000)
 #define MSTATUS_MPV			_ULL(0x0000008000000000)
 #else
 #define MSTATUSH_SBE			_UL(0x00000010)
 #define MSTATUSH_MBE			_UL(0x00000020)
-#define MSTATUSH_MTL			_UL(0x00000040)
 #define MSTATUSH_MPV			_UL(0x00000080)
 #endif
 #define MSTATUS32_SD			_UL(0x80000000)
@@ -66,7 +64,6 @@
 #define HSTATUS_SP2V			_UL(0x00000200)
 #define HSTATUS_SP2P			_UL(0x00000100)
 #define HSTATUS_SPV			_UL(0x00000080)
-#define HSTATUS_STL			_UL(0x00000040)
 #define HSTATUS_SPRV			_UL(0x00000001)
 
 #define IRQ_S_SOFT			1
@@ -78,6 +75,7 @@
 #define IRQ_S_EXT			9
 #define IRQ_VS_EXT			10
 #define IRQ_M_EXT			11
+#define IRQ_S_GEXT			12
 
 #define MIP_SSIP			(_UL(1) << IRQ_S_SOFT)
 #define MIP_VSSIP			(_UL(1) << IRQ_VS_SOFT)
@@ -88,6 +86,7 @@
 #define MIP_SEIP			(_UL(1) << IRQ_S_EXT)
 #define MIP_VSEIP			(_UL(1) << IRQ_VS_EXT)
 #define MIP_MEIP			(_UL(1) << IRQ_M_EXT)
+#define MIP_SGEIP			(_UL(1) << IRQ_S_GEXT)
 
 #define SIP_SSIP			MIP_SSIP
 #define SIP_STIP			MIP_STIP
@@ -213,10 +212,12 @@
 #define CSR_HTIMEDELTA			0x605
 #define CSR_HTIMEDELTAH			0x615
 #define CSR_HCOUNTERNEN			0x606
+#define CSR_HGEIE			0x607
 #define CSR_HTVAL			0x643
 #define CSR_HIP				0x644
 #define CSR_HTINST			0x64a
 #define CSR_HGATP			0x680
+#define CSR_HGEIP			0xe07
 
 #define CSR_VSSTATUS			0x200
 #define CSR_VSIE			0x204
